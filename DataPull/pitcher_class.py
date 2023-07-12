@@ -3,7 +3,7 @@ from pybaseball import pitching_stats
 from pybaseball import cache
 from datetime import date
 import pandas as pd
-from get_data import get_pitcher_data
+# from get_data import get_pitcher_data
 
 class Pitcher():
     def __init__(self, name, hand):
@@ -29,7 +29,8 @@ class Pitcher():
 
     def batch_averages(self):
         """
-        After reading all data, gets averages of each pitch"""
+        After reading all data, gets averages of each pitch
+        """
         for pitch in self.pitches.keys():
             metrics_type = self.pitches[pitch]
             num_type = metrics_type[-1]
@@ -40,9 +41,8 @@ class Pitcher():
             new_pitch_stats.append(num_type/self.num_pitches)
             self.pitches[pitch] = new_pitch_stats
     
-def format_pitcher_data():
+def format_pitcher_data(pt_data):
     pitcher_dict = dict() #maps string rep of pitcher name to pitcher object
-    pt_data = get_pitcher_data()
     for index, row in pt_data.iterrows():
         pitcher_name = row['player_name']
         pitch_type = row['pitch_name']
@@ -73,6 +73,6 @@ def process_batch_avg(p_dict):
             avg_df.loc[len(avg_df)] = ls
     return avg_df
 
-if __name__ == '__main__':
-    p_dict = format_pitcher_data()
-    print(process_batch_avg(p_dict))
+# if __name__ == '__main__':
+#     p_dict = format_pitcher_data()
+#     print(process_batch_avg(p_dict))

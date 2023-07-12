@@ -1,3 +1,4 @@
 __pycache__/
+DataPull/__pycache__/
 .DS_Store
-pitch-arsenal-stats.csv
+DataPull/pitch-arsenal-stats.csv

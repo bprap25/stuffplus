@@ -13,7 +13,10 @@ pitch_to_rv_map = {'Split-Finger': 'Splitter', '4-Seam Fastball': '4-Seamer', 'S
 cache.enable()
 
 def get_pitcher_data():
-
+    """
+    Args:None
+    Returns: pitcher dataframe of all pitches thrown from the start of 2023 season to current data
+    """
     raw_data = statcast(start_dt='2023-03-30', end_dt= str(date.today()))
     #select columns, remove overhead data
     p_data = raw_data[['player_name','pitch_name','release_speed','release_pos_x','release_pos_z','p_throws','pfx_x',
@@ -33,6 +36,10 @@ def get_pitcher_data():
     return p_data.dropna(how = 'any')
 
 def get_runvalue_data():
+    """
+    Args: None
+    Returns: Run Value dataframe of each pitch in MLB for the specified year
+    """
     raw_run_val = pd.read_csv('pitch-arsenal-stats.csv') #access to csv restricted, must do manual pull
     run_val = raw_run_val[['last_name','first_name','pitch_name','run_value_per_100']]
 
@@ -41,7 +48,7 @@ def get_runvalue_data():
                   | (run_val['pitch_name'] == 'Splitter')| (run_val['pitch_name'] == 'Sweeper')| (run_val['pitch_name'] == 'Slurve')
                   | (run_val['pitch_name'] == 'Forkball')| (run_val['pitch_name'] == 'Screwball')| (run_val['pitch_name'] == 'Knuckleball')]
 
-    run_val['player_name'] = run_val['first_name'] + ' ' + run_val['last_name']
+    run_val['player_name'] = run_val['last_name'] + ', ' + run_val['first_name']
     run_val.drop(['last_name','first_name'], axis = 1, inplace=True) #format dataset to have player_name in same format as p_data
 
     return run_val
