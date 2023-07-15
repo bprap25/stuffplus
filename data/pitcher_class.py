@@ -73,6 +73,3 @@ def process_batch_avg(p_dict):
             avg_df.loc[len(avg_df)] = ls
     return avg_df
 
-# if __name__ == '__main__':
-#     p_dict = format_pitcher_data()
-#     print(process_batch_avg(p_dict))

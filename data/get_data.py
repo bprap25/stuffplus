@@ -10,6 +10,7 @@ import pandas as pd
 pitch_to_rv_map = {'Split-Finger': 'Splitter', '4-Seam Fastball': '4-Seamer', 'Slow Curve': 'Curveball', 'Knuckle Curve': 'Curveball',
                    'Cutter': 'Cutter', 'Sinker': 'Sinker', 'Changeup': 'Changeup', 'Slider': 'Slider', 'Curveball': 'Curveball',
                    'Sweeper': 'Sweeper', 'Slurve': 'Slurve', 'Forkball': 'Forkball', 'Screwball': 'Screwball', 'Knuckleball': 'Knuckleball'}
+print(pitch_to_rv_map.values())
 cache.enable()
 
 def get_pitcher_data():
@@ -40,15 +41,32 @@ def get_runvalue_data():
     Args: None
     Returns: Run Value dataframe of each pitch in MLB for the specified year
     """
-    raw_run_val = pd.read_csv('pitch-arsenal-stats.csv') #access to csv restricted, must do manual pull
-    run_val = raw_run_val[['last_name','first_name','pitch_name','run_value_per_100']]
+    raw_run_val = pd.read_csv('data/pitch-arsenal-stats.csv') #access to csv restricted, must do manual pull
+    run_val = raw_run_val[['last_name','first_name','pitch_name','pitches','whiff_percent','est_woba','run_value_per_100']]
 
     run_val = run_val[(run_val['pitch_name'] == '4-Seamer') | (run_val['pitch_name'] == 'Cutter')| (run_val['pitch_name'] == 'Sinker')
                   | (run_val['pitch_name'] == 'Changeup')| (run_val['pitch_name'] == 'Slider')| (run_val['pitch_name'] == 'Curveball')
                   | (run_val['pitch_name'] == 'Splitter')| (run_val['pitch_name'] == 'Sweeper')| (run_val['pitch_name'] == 'Slurve')
                   | (run_val['pitch_name'] == 'Forkball')| (run_val['pitch_name'] == 'Screwball')| (run_val['pitch_name'] == 'Knuckleball')]
 
-    run_val['player_name'] = run_val['last_name'] + ', ' + run_val['first_name']
+    run_val['player_name'] = run_val['last_name'] + ',' + run_val['first_name']
     run_val.drop(['last_name','first_name'], axis = 1, inplace=True) #format dataset to have player_name in same format as p_data
 
     return run_val
+
+def join_ds(inp, out):
+    new_df = pd.merge(inp, out,  how='outer', on = ['player_name','pitch_name'])
+    new_df.dropna(how = 'any', inplace= True)
+    return new_df
+
+def league_avgs(rv_ds):
+    pitches = rv_ds['pitches'].sum()
+    tot_whiffs = 0
+    for index, row in rv_ds.iterrows():
+        whiff_dec = row['whiff_percent']/100
+        tot_whiffs = row['pitches'] * whiff_dec
+    avg_whiff = tot_whiffs/pitches
+    avg_woba = rv_ds['est_woba'].sum()/len(rv_ds.index)
+    avg_rv_100 = rv_ds['run_value_per_100'].sum()/len(rv_ds.index)
+
+    return avg_whiff, avg_woba, avg_rv_100
