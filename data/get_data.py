@@ -6,11 +6,11 @@ from datetime import date
 import pandas as pd
 
 
+
 #global map to call for 1:1 mapping between pitch and rv datasets
 pitch_to_rv_map = {'Split-Finger': 'Splitter', '4-Seam Fastball': '4-Seamer', 'Slow Curve': 'Curveball', 'Knuckle Curve': 'Curveball',
                    'Cutter': 'Cutter', 'Sinker': 'Sinker', 'Changeup': 'Changeup', 'Slider': 'Slider', 'Curveball': 'Curveball',
                    'Sweeper': 'Sweeper', 'Slurve': 'Slurve', 'Forkball': 'Forkball', 'Screwball': 'Screwball', 'Knuckleball': 'Knuckleball'}
-print(pitch_to_rv_map.values())
 cache.enable()
 
 def get_pitcher_data():
@@ -52,7 +52,8 @@ def get_runvalue_data():
     run_val['player_name'] = run_val['last_name'] + ',' + run_val['first_name']
     run_val.drop(['last_name','first_name'], axis = 1, inplace=True) #format dataset to have player_name in same format as p_data
 
-    return run_val
+    run_val['run_value_per_100'] = run_val['run_value_per_100'].apply(lambda x: x* -1)
+    return run_val.dropna(how = 'any')
 
 def join_ds(inp, out):
     new_df = pd.merge(inp, out,  how='outer', on = ['player_name','pitch_name'])
@@ -60,13 +61,34 @@ def join_ds(inp, out):
     return new_df
 
 def league_avgs(rv_ds):
-    pitches = rv_ds['pitches'].sum()
+    pitches = 0
     tot_whiffs = 0
+    tot_woba = 0
+    tot_rv = 0
     for index, row in rv_ds.iterrows():
         whiff_dec = row['whiff_percent']/100
-        tot_whiffs = row['pitches'] * whiff_dec
-    avg_whiff = tot_whiffs/pitches
-    avg_woba = rv_ds['est_woba'].sum()/len(rv_ds.index)
-    avg_rv_100 = rv_ds['run_value_per_100'].sum()/len(rv_ds.index)
+        tot_whiffs += int(row['pitches'] * whiff_dec)
+        pitches += row['pitches']
+        tot_rv += row['run_value_per_100']
+        tot_woba += int(row['pitches'] * row['est_woba'])
+    avg_whiff = (tot_whiffs/pitches) * 100
+    avg_woba = tot_woba/pitches
+    avg_rv_100 = tot_rv/len(rv_ds)
 
-    return avg_whiff, avg_woba, avg_rv_100
+    return [avg_whiff, avg_woba, avg_rv_100]
+
+def generate_plus(ds,avs):
+    av_whiff = avs[0]
+    av_woba = avs[1]
+    av_rv_100 = avs[2]
+    ls = []
+    for index,row in ds.iterrows():
+        rv = row['run_value_per_100']
+        whiff = row['whiff_percent']
+        xwoba = row['est_woba']
+        pct_rv = ((rv-av_rv_100)/abs(av_rv_100)) * 100
+        pct_woba = ((xwoba-av_woba)/av_woba) * 100
+        pct_whiff = ((whiff-av_whiff)/av_whiff) * 100
+        ls.append((pct_rv + pct_woba + pct_whiff)/3)
+    
+    return ls
