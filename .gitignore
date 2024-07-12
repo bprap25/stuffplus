@@ -2,3 +2,4 @@ __pycache__/
 data/__pycache__/
 .DS_Store
 data/pitch-arsenal-stats.csv
+.vscode/

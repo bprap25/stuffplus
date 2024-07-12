@@ -72,4 +72,3 @@ def process_batch_avg(p_dict):
             ls = [name] + [pitch] + [pitcher.throws] + pitcher.pitches[pitch]
             avg_df.loc[len(avg_df)] = ls
     return avg_df
-
